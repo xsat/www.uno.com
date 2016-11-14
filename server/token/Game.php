@@ -4,13 +4,18 @@ namespace Server\Token;
 
 use Server\Token;
 use Server\Card\GameCard as Card;
-use Server\Token\Player\GamePlayer as Player;
+use Server\Token\Player\GamePlayer;
 
 class Game extends Token
 {
     const STATUS_MATCHMAKING = 2;
     const STATUS_PLAYING = 1;
     const STATUS_ENDED = 0;
+
+    const MIN_PLAYERS = 2;
+    const MAX_PLAYERS = 10;
+
+    const START_CARDS = 7;
 
     private $status = self::STATUS_MATCHMAKING;
 
@@ -62,8 +67,26 @@ class Game extends Token
         shuffle($this->active_cards);
     }
 
-    public function addPlayer(Player $player)
+    public function addPlayer(GamePlayer $player)
     {
+        foreach (range(1, self::START_CARDS) as $number) {
+            $number = array_rand($this->active_cards);
 
+            $player->addCard($this->active_cards[$number]);
+
+            unset($this->active_cards[$number]);
+        }
+
+        $this->players[] = $player;
+    }
+
+    public function isEnough()
+    {
+        return sizeof($this->players) >= self::MIN_PLAYERS && sizeof($this->players) <= self::MAX_PLAYERS;
+    }
+
+    public function isAutoStart()
+    {
+        return sizeof($this->players) == self::MAX_PLAYERS;
     }
 }
